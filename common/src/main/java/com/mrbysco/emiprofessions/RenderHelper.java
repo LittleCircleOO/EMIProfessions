@@ -38,7 +38,7 @@ public class RenderHelper {
 		villager.yHeadRotO = villager.getYRot();
 		villager.setXRot((float) -(pitch / 5.F));
 
-		poseStack.translate(0.0F, villager.getVehicleAttachmentPoint(villager).y(), 0.0F);
+		poseStack.translate(0.0F, 0.0F, 0.0F);
 		EntityRenderDispatcher entityRenderDispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
 		entityRenderDispatcher.overrideCameraOrientation(new Quaternionf(0.0F, 0.0F, 0.0F, 1.0F));
 		entityRenderDispatcher.setRenderShadow(false);

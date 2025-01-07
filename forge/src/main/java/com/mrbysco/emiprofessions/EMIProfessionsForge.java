@@ -1,13 +1,13 @@
 package com.mrbysco.emiprofessions;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 
 @Mod(Constants.MOD_ID)
-public class EMIProfessionsNeoForge {
+public class EMIProfessionsForge {
 
-	public EMIProfessionsNeoForge(Dist dist) {
+	public EMIProfessionsForge(Dist dist) {
 		if (dist.isClient()) {
 //			NeoForge.EVENT_BUS.addListener(this::handleTooltips);
 		}

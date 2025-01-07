@@ -1,69 +1,81 @@
 plugins {
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '7.0.165'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
     id 'java-library'
     id 'net.darkhax.curseforgegradle'
     id 'com.modrinth.minotaur'
 }
 
 base {
-    archivesName = "${mod_name}-neoforge-${minecraft_version}"
+    archivesName = "${mod_name}-forge-${minecraft_version}"
 }
 
-if (file('src/main/resources/META-INF/accesstransformer.cfg').exists()) {
-    minecraft.accessTransformers.file file('src/main/resources/META-INF/accesstransformer.cfg')
-}
+minecraft {
+    mappings channel: 'official', version: minecraft_version
 
-runs {
-    // applies to all the run configs below
-    configureEach {
-        // Recommended logging data for a userdev environment
-        systemProperty 'forge.logging.markers', 'REGISTRIES'
-
-        // Recommended logging level for the console
-        systemProperty 'forge.logging.console.level', 'debug'
-
-        //Limit ram usage for the dev environment to 4GB
-        jvmArgument '-Xmx4G'
-
-        systemProperty 'mixin.env.disableRefMap', 'true'
-
-        modSource project.sourceSets.main
+    if (file('src/main/resources/META-INF/accesstransformer.cfg').exists()) {
+        accessTransformer =  file('src/main/resources/META-INF/accesstransformer.cfg')
     }
 
-    client {
-        // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
-        systemProperty 'neoforge.enabledGameTestNamespaces', "${mod_id}"
-    }
+    runs {
+        client {
+            workingDirectory project.file('run')
+            ideaModule "${rootProject.name}.${project.name}.main"
+            taskName 'Client'
+            mods {
+                modClientRun {
+                    source sourceSets.main
+                    source project(":common").sourceSets.main
+                }
+            }
+        }
 
-    server {
-        systemProperty 'neoforge.enabledGameTestNamespaces', "${mod_id}"
-        programArgument '--nogui'
+        server {
+            workingDirectory project.file('run')
+            ideaModule "${rootProject.name}.${project.name}.main"
+            taskName 'Server'
+            mods {
+                modServerRun {
+                    source sourceSets.main
+                    source project(":common").sourceSets.main
+                }
+            }
+        }
+
+        data {
+            workingDirectory project.file('run')
+            ideaModule "${rootProject.name}.${project.name}.main"
+            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+            taskName 'Data'
+            mods {
+                modDataRun {
+                    source sourceSets.main
+                    source project(":common").sourceSets.main
+                }
+            }
+        }
     }
 }
 
 sourceSets.main.resources.srcDir 'src/generated/resources'
 
 dependencies {
-    implementation "net.neoforged:neoforge:${neo_version}"
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     compileOnly project(":common")
-    compileOnly "dev.emi:emi-neoforge:${emi_version}:api"
-    runtimeOnly "dev.emi:emi-neoforge:${emi_version}"
+    compileOnly "dev.emi:emi-forge:${emi_version}:api"
+    runtimeOnly "dev.emi:emi-forge:${emi_version}"
 }
 
 configurations {
     testCompileOnly.extendsFrom compileOnly // for some reason needed for EMI
 }
 
-// NeoGradle compiles the game, but we don't want to add our common code to the game's code
-Spec<Task> notNeoTask = { Task it -> !it.name.startsWith("neo") } as Spec<Task>
-
-tasks.withType(JavaCompile).matching(notNeoTask).configureEach {
+tasks.withType(JavaCompile).configureEach {
     source(project(":common").sourceSets.main.allSource)
 }
 
-tasks.withType(Javadoc).matching(notNeoTask).configureEach {
+tasks.withType(Javadoc).configureEach {
     source(project(":common").sourceSets.main.allJava)
 }
 
@@ -71,7 +83,7 @@ tasks.named("sourcesJar", Jar) {
     from(project(":common").sourceSets.main.allSource)
 }
 
-tasks.withType(ProcessResources).matching(notNeoTask).configureEach {
+tasks.withType(ProcessResources).configureEach {
     from project(":common").sourceSets.main.resources
 }
 
@@ -103,9 +115,9 @@ if (System.getenv().CURSEFORGE_KEY) {
 
         def mainFile = upload(project.curseforge_id, jar)
         mainFile.releaseType = 'release'
-        mainFile.addGameVersion "NeoForge"
+        mainFile.addGameVersion "Forge"
         mainFile.addGameVersion "${minecraft_version}"
-        mainFile.addGameVersion "Java 21"
+        mainFile.addGameVersion "Java 17"
 
         mainFile.changelog = file("$project.rootDir/changelog.md")
         mainFile.changelogType = 'markdown'
@@ -125,7 +137,7 @@ if (System.getenv().MODRINTH_KEY) {
         uploadFile = jar
         changelog = fileContents
         gameVersions = ["${minecraft_version}"]
-        loaders = ["neoforge"]
+        loaders = ["forge"]
 
         dependencies {
             required.project "emi"
